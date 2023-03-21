@@ -9,6 +9,17 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 
+class Answers(StatesGroup):
+    subject = State()
+    type = State()
+    request = State()
+
+
+class Rules(StatesGroup):
+    subject = State()
+    request = State()
+
+
 def access_try(user_id):
     return 1 if user_id in ACCESS else 0
 
@@ -30,7 +41,8 @@ async def help_text(message: types.Message):
 
 
 @dp.message_handler(commands=['answers'])
-async def answers(message: types.Message) -> None:
+async def answers1(message: types.Message) -> None:
+    await Answers.subject.set()
     answers_keyboard = [
         [
             types.KeyboardButton(text="Русский язык"),
@@ -41,8 +53,44 @@ async def answers(message: types.Message) -> None:
     await message.answer(text="Выберите нужный предмет...", reply_markup=markup)
 
 
+@dp.message_handler(state=Answers.subject)
+async def answers2(message: types.Message, state: FSMContext) -> None:
+    await Answers.subject.set()
+    type_keyboard = [
+        [
+            types.KeyboardButton(text="По варианту"),
+            types.KeyboardButton(text="По заданию")
+        ]
+    ]
+    markup = types.ReplyKeyboardMarkup(keyboard=type_keyboard, resize_keyboard=True)
+    async with state.proxy() as data:
+        data['subject'] = message.text
+        await Answers.type.set()
+        await message.answer("Выберите тип поиска...", reply_markup=markup)
+
+
+@dp.message_handler(state=Answers.type)
+async def answers3(message: types.Message, state: FSMContext) -> None:
+    await Answers.type.set()
+    async with state.proxy() as data:
+        data['type'] = message.text
+        await Answers.request.set()
+        await message.answer("Укажите номер варианта/задания...", reply_markup=types.ReplyKeyboardRemove())
+
+
+@dp.message_handler(state=Answers.request)
+async def answers4(message: types.Message, state: FSMContext) -> None:
+    await Answers.request.set()
+    async with state.proxy() as data:
+        data['request'] = message.text
+        subject, find_type, number = data['subject'], data['type'], int(data['request'])
+        await state.finish()
+        await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
+
+
 @dp.message_handler(commands=['rules'])
 async def rules(message: types.Message) -> None:
+    await Rules.subject.set()
     rules_keyboard = [
         [
             types.KeyboardButton(text="Русский язык"),
