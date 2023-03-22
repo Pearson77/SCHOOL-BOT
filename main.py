@@ -24,7 +24,7 @@ async def func_await(text, message) -> None:
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message) -> None:
-    await message.answer(message.from_user.id)
+    await message.answer(str(message.from_user.id))
 
 
 @dp.message_handler(commands=['cancel'])
