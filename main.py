@@ -1,27 +1,25 @@
 from aiogram import Dispatcher, Bot, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 
-from cfg import TOKEN, ACCESS
+from cfg import TOKEN, COMMANDS
+from funcs import Answers, Rules
+
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 
-class Answers(StatesGroup):
-    subject = State()
-    type = State()
-    request = State()
-
-
-class Rules(StatesGroup):
-    subject = State()
-    request = State()
-
-
-def access_try(user_id):
-    return 1 if user_id in ACCESS else 0
+async def func_await(text, message) -> None:
+    """На случай, если во время state вызвали другую команду"""
+    if text == "/help":
+        await help_text(message)
+    elif text == "/cancel":
+        await cancel(message)
+    elif text == "/answers":
+        await answers(message)
+    else:
+        await rules(message)
 
 
 @dp.message_handler(commands=['start'])
@@ -31,17 +29,19 @@ async def start(message: types.Message) -> None:
 
 @dp.message_handler(commands=['cancel'])
 async def cancel(message: types.Message) -> None:
+    """Отмена действия во время state и удаление кнопок"""
     await message.answer(text="Помощь по использованию бота: /help", reply_markup=types.ReplyKeyboardRemove())
 
 
 @dp.message_handler(commands=['help'])
 async def help_text(message: types.Message):
+    """Получение help-текста из файла и профилактическое удаление кнопок, если они есть"""
     help_message = open("help.txt", mode="r", encoding="utf-8").readlines()
-    await message.answer("".join(help_message), parse_mode="html")
+    await message.answer(text="".join(help_message), reply_markup=types.ReplyKeyboardRemove(), parse_mode="html")
 
 
 @dp.message_handler(commands=['answers'])
-async def answers1(message: types.Message) -> None:
+async def answers(message: types.Message) -> None:
     await Answers.subject.set()
     answers_keyboard = [
         [
@@ -55,18 +55,25 @@ async def answers1(message: types.Message) -> None:
 
 @dp.message_handler(state=Answers.subject)
 async def answers2(message: types.Message, state: FSMContext) -> None:
-    await Answers.subject.set()
-    type_keyboard = [
-        [
-            types.KeyboardButton(text="По варианту"),
-            types.KeyboardButton(text="По заданию")
+    text = message.text
+    if text in COMMANDS:
+        await func_await(text, message)
+        await state.finish()
+    elif text in ["Русский язык", "Информатика"]:
+        await Answers.subject.set()
+        type_keyboard = [
+            [
+                types.KeyboardButton(text="По варианту"),
+                types.KeyboardButton(text="По заданию")
+            ]
         ]
-    ]
-    markup = types.ReplyKeyboardMarkup(keyboard=type_keyboard, resize_keyboard=True)
-    async with state.proxy() as data:
-        data['subject'] = message.text
-        await Answers.type.set()
-        await message.answer("Выберите тип поиска...", reply_markup=markup)
+        markup = types.ReplyKeyboardMarkup(keyboard=type_keyboard, resize_keyboard=True)
+        async with state.proxy() as data:
+            data['subject'] = text
+            await Answers.type.set()
+            await message.answer(text="Выберите тип поиска...", reply_markup=markup)
+    else:
+        await cancel(message)
 
 
 @dp.message_handler(state=Answers.type)
@@ -75,7 +82,7 @@ async def answers3(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['type'] = message.text
         await Answers.request.set()
-        await message.answer("Укажите номер варианта/задания...", reply_markup=types.ReplyKeyboardRemove())
+        await message.answer(text="Укажите номер варианта/задания...", reply_markup=types.ReplyKeyboardRemove())
 
 
 @dp.message_handler(state=Answers.request)
