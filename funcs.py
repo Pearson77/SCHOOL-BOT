@@ -3,12 +3,14 @@ from cfg import ACCESS
 
 
 class Answers(StatesGroup):
+    """Класс именно для ответов"""
     subject = State()
     type = State()
     request = State()
 
 
 class Rules(StatesGroup):
+    """Класс для поиска правил"""
     subject = State()
     request = State()
 
