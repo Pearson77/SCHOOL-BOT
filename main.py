@@ -1,10 +1,9 @@
-from aiogram import Dispatcher, Bot, types
+from aiogram import Dispatcher, Bot, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-from aiogram.utils import executor
 
 from cfg import TOKEN, COMMANDS
-from funcs import Answers, Rules, is_answers
+from funcs import Answers, Rules, is_answers, search_interpreter
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -75,37 +74,56 @@ async def answers2(message: types.Message, state: FSMContext) -> None:
             await message.answer(text="Выберите тип поиска...", reply_markup=markup)
 
     else:
+        await state.finish()
+        await message.answer(text="Произошла ошибка!")
         await cancel(message)
 
 
 @dp.message_handler(state=Answers.type)
 async def answers3(message: types.Message, state: FSMContext) -> None:
     await Answers.type.set()
-    async with state.proxy() as data:
-        data['type'] = message.text
-        if data['type'] == "По варианту":
-            await Answers.request.set()
-            await message.answer(text="Укажите номер варианта...", reply_markup=types.ReplyKeyboardRemove())
+    text = message.text
+    if text in COMMANDS:
+        await func_await(text, message)
+        await state.finish()
 
-        elif data['type'] == "По заданию":
+    elif text in ["По варианту", "По заданию"]:
+        async with state.proxy() as data:
+            data['type'] = text
+            word = "задания" if "заданию" in data['type'] else "варианта"
             await Answers.request.set()
-            await message.answer(text="Укажите номер задания...", reply_markup=types.ReplyKeyboardRemove())
+            await message.answer(text=f"Укажите номер {word}...", reply_markup=types.ReplyKeyboardRemove())
+
+    else:
+        await state.finish()
+        await message.answer(text="Произошла ошибка!")
+        await cancel(message)
 
 
 @dp.message_handler(state=Answers.request)
 async def answers4(message: types.Message, state: FSMContext) -> None:
     await Answers.request.set()
     text = message.text
-    async with state.proxy() as data:
-        data['request'] = text
-        if is_answers(data['type'], data['subject'], int(text)) == 1:
-            await message.answer(f"Предмет: {data['subject']}\nТип поиска: {data['type']}\nНомер: {data['request']}")
-            await state.finish()
-        else:
-            word = "задания" if "заданию" in data['type'] else "варианта"
-            await state.finish()
-            await message.reply(f"Произошла ошибка! Такого {word} нет :(")
-            await cancel(message)
+    if text in COMMANDS:
+        await func_await(text, message)
+        await state.finish()
+
+    elif text in list(map(str, range(1, 51))):
+        async with state.proxy() as data:
+            data['request'] = text
+            if is_answers(data['type'], data['subject'], int(text)) == 1:
+                answers_text = search_interpreter(data['type'], data['subject'], int(text))
+                await state.finish()
+                await message.answer(text=answers_text, parse_mode="html")
+            else:
+                await state.finish()
+                await message.reply(f"Произошла ошибка!")
+                await cancel(message)
+
+    else:
+        await state.finish()
+        await message.answer(text="Произошла ошибка!")
+        await cancel(message)
 
 
 @dp.message_handler(commands=['rules'])

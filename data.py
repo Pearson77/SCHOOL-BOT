@@ -2,8 +2,6 @@ import sqlite3
 
 db = sqlite3.connect("database.db")
 cursor = db.cursor()
-array = cursor.execute(f"SELECT n2 FROM inf_answers WHERE rowid > '0'").fetchall()
-print(array)
 # cursor.execute("""CREATE TABLE inf_answers (
 # '1' TEXT,
 # '2' TEXT,
@@ -43,14 +41,30 @@ class Data:
         self.c = self.db.cursor()
 
     def find_answers_by_variant(self, variant, var_type):
-        array = self.c.execute(f"SELECT * FROM {var_type}_answers, WHERE rowid = '{variant}'").fetchall()
-        print(array)
-        return self.db.commit(), self.db.close()
+        array = self.c.execute(f"SELECT * FROM {var_type}_answers WHERE rowid = '{variant}'").fetchall()
+        answers = ""
+        for i in range(len(array[0])):
+            if i != 24:
+                answers += f"<b>Задание {i+1}</b>:<code>\t{array[0][i]}</code>\n"
+            else:
+                a = "\n"
+                answer = array[0][i].split()
+                for j in range(len(answer)):
+                    if j % 2 == 0:
+                        a += f"{answer[j]} — "
+                    else:
+                        a += f"{answer[j]}\n"
+                answers += f"<b>{25}</b>: <code>{a}</code>"
+
+        return self.db.commit(), self.db.close(), answers
 
     def find_answers_by_number(self, number, var_type):
-        array = self.c.execute(f"SELECT '{number}' FROM {var_type}_answers").fetchall()
+        array = self.c.execute(f"SELECT n{number} FROM {var_type}_answers").fetchall()
         print(array)
-        return self.db.commit(), self.db.close()
+        answers = ""
+        for i in range(len(array)):
+            answers += f"<b>Вариант {i+1}</b>:<code>\t{array[i][0]}</code>\n"
+        return self.db.commit(), self.db.close(), answers
 
     def find_files_by_request(self, request):
         ...
