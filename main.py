@@ -97,15 +97,10 @@ async def answers4(message: types.Message, state: FSMContext) -> None:
     await Answers.request.set()
     async with state.proxy() as data:
         data['request'] = message.text
-        if data['request'] == "Укажите номер варианта":
-            subject, find_type, number = data['subject'], data['type'], int(data['request'])
-            await state.finish()
-            await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
+        subject, find_type, number = data['subject'], data['type'], int(data['request'])
+        await state.finish()
+        await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
 
-        if data['request'] == "Укажите номер задания":
-            subject, find_type, number = data['subject'], data['type'], int(data['request'])
-            await state.finish()
-            await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
 
 
 @dp.message_handler(commands=['rules'])
