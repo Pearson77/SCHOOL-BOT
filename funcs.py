@@ -13,7 +13,6 @@ class Rules(StatesGroup):
     """Класс для поиска правил"""
     subject = State()
     type = State()
-    number = State()
     request = State()
 
 

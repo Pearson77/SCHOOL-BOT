@@ -151,8 +151,7 @@ async def rules3(message: types.Message, state: FSMContext) -> None:
             await Rules.request.set()
             data['type'] = text
             number = "От 1 до 18" if data['subject'] == "Математика" else "От 1 до 27"
-            find_type = "задания" if "заданию" in text else "варианта"
-            await message.answer(text=f"Введите номер {find_type} ({number})", reply_markup=types.ReplyKeyboardRemove())
+            await message.answer(text=f"Введите номер варианта ({number})", reply_markup=types.ReplyKeyboardRemove())
 
     elif text == "Поиск по ключевым словам":
         ...
@@ -172,18 +171,24 @@ async def rules4(message: types.Message, state: FSMContext) -> None:
         await state.finish()
         await func_await(text, message)
 
-    elif text in list(map(str, range(1, 28))):
+    elif text in list(map(str, range(1, 51))):
         async with state.proxy() as data:
-            number = 18 if data['subject'] == "Математика" else 27
-            if int(text) > number:
-                await state.finish()
-                await message.reply("Указан неверный номер!")
-                await cancel(message)
-            data['request'] = int(text)
-            await message.answer(
-                text=f"{data['subject']}\n{data['type']}\n{data['request']}", reply_markup=types.ReplyKeyboardRemove()
-            )
-            await state.finish()
+            if data['type'] == "Памятка по заданию":
+                number = 18 if data['subject'] == "Математика" else 27
+                if int(text) > number:
+                    await state.finish()
+                    await message.reply("Указан неверный номер!")
+                    await cancel(message)
+                else:
+                    data['request'] = int(text)
+                    await message.answer(
+                        text=f"{data['subject']}\n{data['type']}\n{data['request']}",
+                        reply_markup=types.ReplyKeyboardRemove()
+                    )
+                    await state.finish()
+
+            else:
+                ...
 
     else:
         await state.finish()
