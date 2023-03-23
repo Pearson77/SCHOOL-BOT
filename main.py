@@ -105,7 +105,7 @@ async def answers4(message: types.Message, state: FSMContext) -> None:
         if data['request'] == "Укажите номер задания":
             subject, find_type, number = data['subject'], data['type'], int(data['request'])
             await state.finish()
-            await message.answer(InfVar(data['requet']))
+            await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
 
 
 @dp.message_handler(commands=['rules'])
