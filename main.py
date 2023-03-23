@@ -154,7 +154,10 @@ async def rules3(message: types.Message, state: FSMContext) -> None:
             await message.answer(text=f"Введите номер варианта ({number})", reply_markup=types.ReplyKeyboardRemove())
 
     elif text == "Поиск по ключевым словам":
-        ...
+        async with state.proxy() as data:
+            await Rules.request.set()
+            data['type'] = text
+            ...
 
     else:
         await state.finish()
