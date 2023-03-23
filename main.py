@@ -1,4 +1,4 @@
-from aiogram import Dispatcher, Bot, executor, types
+from aiogram import Dispatcher, Bot, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.utils import executor
@@ -159,7 +159,6 @@ async def rules3(message: types.Message, state: FSMContext) -> None:
             data['type'] = text
             await message.answer(text=f"Введите ключевую фразу", reply_markup=types.ReplyKeyboardRemove())
 
-
     else:
         await state.finish()
         await message.reply("Произошла ошибка!")
@@ -175,27 +174,22 @@ async def rules4(message: types.Message, state: FSMContext) -> None:
         await state.finish()
         await func_await(text, message)
 
-    elif text == "Информатика" or text == "Русский язык":
+    elif text in list(map(str, range(1, 28))):
         async with state.proxy() as data:
-            if data['type'] == "Памятка по заданию":
-                number = 18 if data['subject'] == "Математика" else 27
-                if int(text) > number:
-                    await state.finish()
-                    await message.reply("Указан неверный номер!")
-                    await cancel(message)
-                else:
-                    data['request'] = int(text)
-                    await message.answer(text=f"{data['subject']}\n{data['type']}\n{data['request']}")
-                    await state.finish()
-            if data['type'] == "Поиск по ключевым словам":
-                if number = :
-                    data['request'] = text
-                    await message.answer(text="По вашему запросу ничего не найдено")
+            if int(text) > 18 and data['subject'] == "Математика":
+                await state.finish()
+                await message.reply("Указан неверный номер!")
+                await cancel(message)
+            else:
+                data['request'] = int(text)
+                await message.answer(text=f"{data['subject']}\n{data['type']}\n{data['request']}")
+                await state.finish()
 
     else:
-        await state.finish()
-        await message.reply("Произошла ошибка!")
-        await cancel(message)
+        async with state.proxy() as data:
+            data['request'] = text
+            await message.answer(text=f"{data['subject']}\n{data['type']}\n{data['request']}")
+            await state.finish()
 
 
 if __name__ == "__main__":
