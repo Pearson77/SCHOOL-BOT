@@ -83,8 +83,13 @@ async def answers3(message: types.Message, state: FSMContext) -> None:
     await Answers.type.set()
     async with state.proxy() as data:
         data['type'] = message.text
-        await Answers.request.set()
-        await message.answer(text="Укажите номер варианта/задания...", reply_markup=types.ReplyKeyboardRemove())
+        if data['type'] == "По варианту":
+            await Answers.request.set()
+            await message.answer(text="Укажите номер варианта...", reply_markup=types.ReplyKeyboardRemove())
+
+        elif data['type'] == "По заданию":
+            await Answers.request.set()
+            await message.answer(text="Укажите номер задания...", reply_markup=types.ReplyKeyboardRemove())
 
 
 @dp.message_handler(state=Answers.request)
@@ -92,9 +97,15 @@ async def answers4(message: types.Message, state: FSMContext) -> None:
     await Answers.request.set()
     async with state.proxy() as data:
         data['request'] = message.text
-        subject, find_type, number = data['subject'], data['type'], int(data['request'])
-        await state.finish()
-        await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
+        if data['request'] == "Укажите номер варианта":
+            subject, find_type, number = data['subject'], data['type'], int(data['request'])
+            await state.finish()
+            await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
+
+        if data['request'] == "Укажите номер задания":
+            subject, find_type, number = data['subject'], data['type'], int(data['request'])
+            await state.finish()
+            await message.answer(InfVar(data['requet']))
 
 
 @dp.message_handler(commands=['rules'])
