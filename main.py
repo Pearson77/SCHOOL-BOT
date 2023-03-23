@@ -59,6 +59,7 @@ async def answers2(message: types.Message, state: FSMContext) -> None:
     if text in COMMANDS:
         await func_await(text, message)
         await state.finish()
+
     elif text in ["Русский язык", "Информатика"]:
         await Answers.subject.set()
         type_keyboard = [
@@ -72,6 +73,7 @@ async def answers2(message: types.Message, state: FSMContext) -> None:
             data['subject'] = text
             await Answers.type.set()
             await message.answer(text="Выберите тип поиска...", reply_markup=markup)
+
     else:
         await cancel(message)
 
@@ -107,6 +109,86 @@ async def rules(message: types.Message) -> None:
     ]
     markup = types.ReplyKeyboardMarkup(keyboard=rules_keyboard, resize_keyboard=True)
     await message.answer(text="Выберите нужный предмет...", reply_markup=markup)
+
+
+@dp.message_handler(state=Rules.subject)
+async def rules2(message: types.Message, state: FSMContext) -> None:
+    await Rules.subject.set()
+    text = message.text
+    if text in COMMANDS:
+        await state.finish()
+        await func_await(text, message)
+
+    elif text in ["Русский язык", "Математика", "Информатика"]:
+        type_keyboard = [
+            [
+                types.KeyboardButton(text="Памятка по заданию"),
+                types.KeyboardButton(text="Поиск по ключевым словам")
+            ]
+        ]
+        markup = types.ReplyKeyboardMarkup(keyboard=type_keyboard, resize_keyboard=True)
+        async with state.proxy() as data:
+            await Rules.type.set()
+            data['subject'] = text
+            await message.answer(text="Выберите тип поиска...", reply_markup=markup)
+
+    else:
+        await state.finish()
+        await message.reply("Произошла ошибка!")
+        await cancel(message)
+
+
+@dp.message_handler(state=Rules.type)
+async def rules3(message: types.Message, state: FSMContext) -> None:
+    await Rules.type.set()
+    text = message.text
+    if text in COMMANDS:
+        await state.finish()
+        await func_await(text, message)
+
+    elif text == "Памятка по заданию":
+        async with state.proxy() as data:
+            await Rules.request.set()
+            data['type'] = text
+            number = "От 1 до 18" if data['subject'] == "Математика" else "От 1 до 27"
+            find_type = "задания" if "заданию" in text else "варианта"
+            await message.answer(text=f"Введите номер {find_type} ({number})", reply_markup=types.ReplyKeyboardRemove())
+
+    elif text == "Поиск по ключевым словам":
+        ...
+
+    else:
+        await state.finish()
+        await message.reply("Произошла ошибка!")
+        await cancel(message)
+
+
+@dp.message_handler(state=Rules.request)
+async def rules4(message: types.Message, state: FSMContext) -> None:
+    await Rules.request.set()
+    text = message.text
+
+    if text in COMMANDS:
+        await state.finish()
+        await func_await(text, message)
+
+    elif text in list(map(str, range(1, 28))):
+        async with state.proxy() as data:
+            number = 18 if data['subject'] == "Математика" else 27
+            if int(text) > number:
+                await state.finish()
+                await message.reply("Указан неверный номер!")
+                await cancel(message)
+            data['request'] = int(text)
+            await message.answer(
+                text=f"{data['subject']}\n{data['type']}\n{data['request']}", reply_markup=types.ReplyKeyboardRemove()
+            )
+            await state.finish()
+
+    else:
+        await state.finish()
+        await message.reply("Произошла ошибка!")
+        await cancel(message)
 
 
 if __name__ == "__main__":

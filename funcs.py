@@ -12,8 +12,9 @@ class Answers(StatesGroup):
 class Rules(StatesGroup):
     """Класс для поиска правил"""
     subject = State()
+    type = State()
+    number = State()
     request = State()
-
 
 
 def access_try(user_id: int) -> int:
