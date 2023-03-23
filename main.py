@@ -97,9 +97,14 @@ async def answers4(message: types.Message, state: FSMContext) -> None:
     await Answers.request.set()
     async with state.proxy() as data:
         data['request'] = message.text
-        subject, find_type, number = data['subject'], data['type'], int(data['request'])
-        await state.finish()
-        await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
+        if data['subject'] == "Информатика" and int(data['request'])<21:
+            subject, find_type, number = data['subject'], data['type'], int(data['request'])
+            await state.finish()
+            await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
+        else:
+            await state.finish()
+            await message.reply("Произошла ошибка! Такого варианта нету((")
+            await cancel(message)
 
 
 
