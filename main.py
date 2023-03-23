@@ -157,7 +157,8 @@ async def rules3(message: types.Message, state: FSMContext) -> None:
         async with state.proxy() as data:
             await Rules.request.set()
             data['type'] = text
-            ...
+            await message.answer(text=f"Введите ключевую фразу", reply_markup=types.ReplyKeyboardRemove())
+
 
     else:
         await state.finish()
@@ -174,7 +175,7 @@ async def rules4(message: types.Message, state: FSMContext) -> None:
         await state.finish()
         await func_await(text, message)
 
-    elif text in list(map(str, range(1, 51))):
+    elif text == "Информатика" or text == "Русский язык":
         async with state.proxy() as data:
             if data['type'] == "Памятка по заданию":
                 number = 18 if data['subject'] == "Математика" else 27
@@ -184,14 +185,12 @@ async def rules4(message: types.Message, state: FSMContext) -> None:
                     await cancel(message)
                 else:
                     data['request'] = int(text)
-                    await message.answer(
-                        text=f"{data['subject']}\n{data['type']}\n{data['request']}",
-                        reply_markup=types.ReplyKeyboardRemove()
-                    )
+                    await message.answer(text=f"{data['subject']}\n{data['type']}\n{data['request']}")
                     await state.finish()
-
-            else:
-                ...
+            if data['type'] == "Поиск по ключевым словам":
+                if number = :
+                    data['request'] = text
+                    await message.answer(text="По вашему запросу ничего не найдено")
 
     else:
         await state.finish()
