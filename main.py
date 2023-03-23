@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.utils import executor
 
 from cfg import TOKEN, COMMANDS
-from funcs import Answers, Rules
+from funcs import Answers, Rules, is_answers
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -95,17 +95,17 @@ async def answers3(message: types.Message, state: FSMContext) -> None:
 @dp.message_handler(state=Answers.request)
 async def answers4(message: types.Message, state: FSMContext) -> None:
     await Answers.request.set()
+    text = message.text
     async with state.proxy() as data:
-        data['request'] = message.text
-        if data['subject'] == "Информатика" and int(data['request'])<21:
-            subject, find_type, number = data['subject'], data['type'], int(data['request'])
+        data['request'] = text
+        if is_answers(data['type'], data['subject'], int(text)) == 1:
+            await message.answer(f"Предмет: {data['subject']}\nТип поиска: {data['type']}\nНомер: {data['request']}")
             await state.finish()
-            await message.answer(f"Предмет: {subject}\nТип поиска: {find_type}\nНомер: {number}")
         else:
+            word = "задания" if "заданию" in data['type'] else "варианта"
             await state.finish()
-            await message.reply("Произошла ошибка! Такого варианта нету((")
+            await message.reply(f"Произошла ошибка! Такого {word} нет :(")
             await cancel(message)
-
 
 
 @dp.message_handler(commands=['rules'])
