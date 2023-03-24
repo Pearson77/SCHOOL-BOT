@@ -45,7 +45,7 @@ class Data:
         answers = ""
         for i in range(len(array[0])):
             if i != 24:
-                answers += f"<b>Задание {i+1}</b>:<code>\t{array[0][i]}</code>\n"
+                answers += f"<b>Задание №{i+1}</b>:<code>\t{array[0][i]}</code>\n"
             else:
                 a = "\n"
                 answer = array[0][i].split()
@@ -54,16 +54,15 @@ class Data:
                         a += f"{answer[j]} — "
                     else:
                         a += f"{answer[j]}\n"
-                answers += f"<b>{25}</b>: <code>{a}</code>"
+                answers += f"<b>Задание №25</b>: <code>{a}</code>"
 
         return self.db.commit(), self.db.close(), answers
 
     def find_answers_by_number(self, number, var_type):
         array = self.c.execute(f"SELECT n{number} FROM {var_type}_answers").fetchall()
-        print(array)
         answers = ""
         for i in range(len(array)):
-            answers += f"<b>Вариант {i+1}</b>:<code>\t{array[i][0]}</code>\n"
+            answers += f"<b>Вариант №{i+1}</b>:<code>\t{array[i][0]}</code>\n"
         return self.db.commit(), self.db.close(), answers
 
     def find_files_by_request(self, request):

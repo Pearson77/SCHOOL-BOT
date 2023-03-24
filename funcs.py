@@ -28,7 +28,7 @@ def is_answers(search_type: str, subject: str, number: int) -> int:
         if (subject == "Информатика" and number <= 20) or (subject == "Русский язык" and number <= 50):
             return 1
     elif search_type == "По заданию":
-        if number <= 27 and number != 25:
+        if number <= 27 and number:
             return 1
     return 0
     # 0 здесь вернется в том случае, если не отработает ни один вышестоящий return
@@ -38,6 +38,8 @@ def search_interpreter(search_type: str, subject: str, number: int) -> str:
     if search_type == "По заданию":
         if subject == "Русский язык":
             return Data().find_answers_by_number(number, "rus")[2]
+        elif subject == "Информатика" and number == 25:
+            return "25-е задание невозможно найти: сообщение будет слишком длинным. Попробуйте найти по варианту..."
         return Data().find_answers_by_number(number, "inf")[2]
 
     else:

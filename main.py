@@ -6,7 +6,7 @@ from cfg import TOKEN, COMMANDS
 from funcs import Answers, Rules, is_answers, search_interpreter
 
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot, storage=MemoryStorage())
+dp = Dispatcher(bot=bot, storage=MemoryStorage())
 
 
 async def func_await(text, message) -> None:
